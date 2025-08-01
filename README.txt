@@ -1,0 +1,1 @@
+Start npm run start:app in root directory to run the server and the client
