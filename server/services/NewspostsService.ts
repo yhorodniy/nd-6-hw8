@@ -1,5 +1,8 @@
-import type { NewPost, Service, PaginationParams, PaginatedResponse, PostCreateRequest, PostUpdateRequest } from '../types/types';
+import type { NewPost, Service, PaginationParams, PaginatedResponse, PostCreateRequest, PostUpdateRequest, PostQueryParams } from '../types/types';
 import { NewspostsRepository } from '../dal/NewspostsRepository';
+import { ValidationError, NewspostsServiceError } from '../helpers/errors';
+import { validateData, validateCreateNewspost, validateUpdateNewspost } from '../helpers/validator';
+import { logger } from '../helpers/logger';
 
 export class NewspostsService implements Service<NewPost> {
     private repository: NewspostsRepository;
@@ -8,97 +11,96 @@ export class NewspostsService implements Service<NewPost> {
         this.repository = new NewspostsRepository();
     }
 
-    async getAll(params?: PaginationParams): Promise<PaginatedResponse<NewPost>> {
+    async getAll(params?: PostQueryParams): Promise<PaginatedResponse<NewPost>> {
         try {
             if (params) {
                 if (params.page < 0) {
-                    throw new Error('Page number cannot be negative');
+                    throw new ValidationError('Page number cannot be negative');
                 }
                 if (params.size <= 0 || params.size > 100) {
-                    throw new Error('Page size must be between 1 and 100');
+                    throw new ValidationError('Page size must be between 1 and 100');
                 }
             }
 
             return await this.repository.getAll(params);
         } catch (error) {
-            console.error('Error in NewspostsService.getAll:', error);
-            throw error;
+            if (error instanceof ValidationError) {
+                throw error;
+            }
+            logger.error('Error in NewspostsService.getAll:', error);
+            throw new NewspostsServiceError('Failed to retrieve posts', error as Error);
         }
     }
 
-    async getById(id: string): Promise<NewPost | null> {
+    async getById(id: number): Promise<NewPost | null> {
         try {
-            if (!id || typeof id !== 'string') {
-                throw new Error('Invalid post ID');
+            if (!id || typeof id !== 'number' || id <= 0) {
+                throw new ValidationError('Invalid post ID - must be a positive number');
             }
 
             return await this.repository.getById(id);
         } catch (error) {
-            console.error('Error in NewspostsService.getById:', error);
-            throw error;
+            if (error instanceof ValidationError) {
+                throw error;
+            }
+            logger.error('Error in NewspostsService.getById:', error);
+            throw new NewspostsServiceError('Failed to retrieve post', error as Error);
         }
     }
 
     async create(data: PostCreateRequest): Promise<NewPost> {
         try {
-            if (!data.title || !data.text) {
-                throw new Error('Title and text are required');
-            }
-
-            if (data.title.length < 3 || data.title.length > 200) {
-                throw new Error('Title must be between 3 and 200 characters');
-            }
-
-            if (data.text.length < 10 || data.text.length > 5000) {
-                throw new Error('Text must be between 10 and 5000 characters');
-            }
+            validateData(data, validateCreateNewspost, 'Post creation failed');
 
             return await this.repository.create(data);
         } catch (error) {
-            console.error('Error in NewspostsService.create:', error);
-            throw error;
+            if (error instanceof ValidationError) {
+                throw error;
+            }
+            logger.error('Error in NewspostsService.create:', error);
+            throw new NewspostsServiceError('Failed to create post', error as Error);
         }
     }
 
-    async update(id: string, data: PostUpdateRequest): Promise<NewPost | null> {
+    async update(id: number, data: PostUpdateRequest): Promise<NewPost | null> {
         try {
-            if (!id || typeof id !== 'string') {
-                throw new Error('Invalid post ID');
+            if (!id || typeof id !== 'number' || id <= 0) {
+                throw new ValidationError('Invalid post ID - must be a positive number');
             }
 
-            if (!data.title && !data.text) {
-                throw new Error('At least one field (title or text) must be provided for update');
+            if (!data || Object.keys(data).length === 0) {
+                throw new ValidationError('At least one field must be provided for update');
             }
 
-            if (data.title !== undefined) {
-                if (data.title.length < 3 || data.title.length > 200) {
-                    throw new Error('Title must be between 3 and 200 characters');
-                }
-            }
-
-            if (data.text !== undefined) {
-                if (data.text.length < 10 || data.text.length > 5000) {
-                    throw new Error('Text must be between 10 and 5000 characters');
-                }
-            }
+            validateData(data, validateUpdateNewspost, 'Post update failed');
 
             return await this.repository.update(id, data);
         } catch (error) {
-            console.error('Error in NewspostsService.update:', error);
-            throw error;
+            if (error instanceof ValidationError) {
+                throw error;
+            }
+            logger.error('Error in NewspostsService.update:', error);
+            throw new NewspostsServiceError('Failed to update post', error as Error);
         }
     }
 
-    async delete(id: string): Promise<boolean> {
+    async delete(id: number): Promise<boolean> {
         try {
-            if (!id || typeof id !== 'string') {
-                throw new Error('Invalid post ID');
+            if (!id || typeof id !== 'number' || id <= 0) {
+                throw new ValidationError('Invalid post ID - must be a positive number');
             }
 
             return await this.repository.delete(id);
         } catch (error) {
-            console.error('Error in NewspostsService.delete:', error);
-            throw error;
+            if (error instanceof ValidationError) {
+                throw error;
+            }
+            logger.error('Error in NewspostsService.delete:', error);
+            throw new NewspostsServiceError('Failed to delete post', error as Error);
         }
+    }
+
+    async triggerError(): Promise<never> {
+        throw new NewspostsServiceError('This is a demo error from NewspostsService');
     }
 }

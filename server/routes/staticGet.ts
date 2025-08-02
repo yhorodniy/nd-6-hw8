@@ -1,8 +1,9 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
+import { CLIENT_INDEX } from '../config/paths';
 
 const router = express.Router();
-const reactAppPath = path.resolve(__dirname, '../../client/dist/index.html');
+const reactAppPath = CLIENT_INDEX;
 
 router.get('/', (req: Request, res: Response) => {
     try {

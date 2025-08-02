@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { newsAPI } from '../../services/api';
 import { formatDate } from '../../services/dateFormatter';
 import type { Post } from '../../types';
+import { NewsGenre } from '../../types';
 import './PostDetailPage.css';
 import Loading from '../../components/Loading/Loading';
 import Error from '../../components/Error/Error';
@@ -23,7 +24,13 @@ const PostDetailPage: React.FC = () => {
             }
 
             try {
-                const fetchedPost = await newsAPI.getPostById(id);
+                const numericId = parseInt(id, 10);
+                if (isNaN(numericId)) {
+                    setError('Invalid post ID');
+                    setLoading(false);
+                    return;
+                }
+                const fetchedPost = await newsAPI.getPostById(numericId);
                 setPost(fetchedPost);
             } catch (err) {
                 setError('Error fetching post');
@@ -43,11 +50,31 @@ const PostDetailPage: React.FC = () => {
         if (!confirmed) return;
 
         try {
-            await newsAPI.deletePost(id);
+            const numericId = parseInt(id, 10);
+            if (isNaN(numericId)) {
+                alert('Invalid post ID');
+                return;
+            }
+            await newsAPI.deletePost(numericId);
             navigate('/');
         } catch (err) {
             console.error('Error deleting post:', err);
             alert('Error deleting post');
+        }
+    };
+
+    const getGenreColor = (genre: string) => {
+        switch (genre) {
+            case NewsGenre.TECHNOLOGY:
+                return '#e74c3c';
+            case NewsGenre.BUSINESS:
+                return '#3498db';
+            case NewsGenre.HEALTH:
+                return '#27ae60';
+            case NewsGenre.OTHER:
+                return '#95a5a6';
+            default:
+                return '#95a5a6';
         }
     };
 
@@ -76,6 +103,17 @@ const PostDetailPage: React.FC = () => {
 
             <article className="post-detail__content">
                 <header className="post-detail__header">
+                    <div className="post-detail__meta">
+                        <span 
+                            className="post-detail__genre"
+                            style={{ backgroundColor: getGenreColor(post.genre) }}
+                        >
+                            {post.genre}
+                        </span>
+                        {post.isPrivate && (
+                            <span className="post-detail__private">🔒 Private</span>
+                        )}
+                    </div>
                     <h1 className="post-detail__title">{post.title}</h1>
                     {post.createDate && (
                         <div className="post-detail__date">

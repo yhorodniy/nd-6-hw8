@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "deps:client": "npm --prefix ./client install",
     "build:client": "npm --prefix ./client run build:client",
-    "dev:server": "npm --prefix ./server run dev:server",
-    "start:app": "npm run build:client & npm run dev:server"
+    "deps:server": "npm --prefix ./server install",
+    "build:server": "npm --prefix ./server run build:server",
+    "run:server": "npm --prefix ./server run start:prod",
+    "start:app": "npm run deps:client & npm run build:client & npm run deps:server & npm run build:server & npm run run:server"
   },
   "repository": {
     "type": "git",

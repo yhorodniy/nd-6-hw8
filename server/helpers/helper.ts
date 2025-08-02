@@ -5,7 +5,7 @@ import fsPromises from 'fs/promises';
 const newsPostsPath = path.resolve(__dirname, '../data/newsPosts.json');
 
 
-export const ensureDataFileExists = async (): Promise<NewPost[]> => {
+export const ensureDataFileExists = async (isFilter: boolean = true): Promise<NewPost[]> => {
     const dataDir = path.dirname(newsPostsPath);
     
     try {
@@ -16,6 +16,10 @@ export const ensureDataFileExists = async (): Promise<NewPost[]> => {
 
     try {
         const data = await fsPromises.readFile(newsPostsPath, 'utf-8');
+        if (isFilter) {
+            return JSON.parse(data).filter((post: NewPost) => post.isPrivate === false);
+        }
+
         return JSON.parse(data);
     } catch {
         const emptyPosts: NewPost[] = [];

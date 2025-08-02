@@ -70,6 +70,33 @@
     margin-bottom: 0;
 }
 
+.post-detail__meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.post-detail__genre {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.post-detail__private {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.875rem;
+    color: #e74c3c;
+    font-weight: 500;
+}
+
 @media (max-width: 768px) {
     .post-detail__header {
         padding: 24px 24px 0;

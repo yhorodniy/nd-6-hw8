@@ -1,23 +1,40 @@
+export enum NewsGenre {
+    BUSINESS = 'Business',
+    HEALTH = 'Health',
+    TECHNOLOGY = 'Technology',
+    OTHER = 'Other'
+}
+
 export interface NewPost {
-    id: string;
+    id: number;
     title: string;
     text: string;
-    createDate?: Date;
+    genre: NewsGenre;
+    isPrivate: boolean;
+    createDate: Date;
 }
 
 export interface PostCreateRequest {
     title: string;
     text: string;
+    genre: NewsGenre;
+    isPrivate: boolean;
 }
 
 export interface PostUpdateRequest {
     title?: string;
     text?: string;
+    genre?: NewsGenre;
+    isPrivate?: boolean;
 }
 
 export interface PaginationParams {
     page: number;
     size: number;
+}
+
+export interface PostQueryParams extends PaginationParams {
+    genre?: NewsGenre;
 }
 
 export interface PaginatedResponse<T> {
@@ -32,12 +49,19 @@ export interface PaginatedResponse<T> {
     };
 }
 
+export interface ErrorResponse {
+    message: string;
+    status: number;
+    stack?: string;
+    originalMessage?: string;
+}
+
 export interface Repository<T> {
-    getAll(params?: PaginationParams): Promise<PaginatedResponse<T>>;
-    getById(id: string): Promise<T | null>;
+    getAll(params?: PostQueryParams): Promise<PaginatedResponse<T>>;
+    getById(id: number): Promise<T | null>;
     create(data: Omit<T, 'id' | 'createDate'>): Promise<T>;
-    update(id: string, data: Partial<T>): Promise<T | null>;
-    delete(id: string): Promise<boolean>;
+    update(id: number, data: Partial<T>): Promise<T | null>;
+    delete(id: number): Promise<boolean>;
 }
 
 export interface Service<T> extends Repository<T> {}

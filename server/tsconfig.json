@@ -19,7 +19,8 @@
     "exactOptionalPropertyTypes": false
   },
   "include": [
-    "**/*.ts"
+    "**/*.ts",
+    "data/*.json"
   ],
   "exclude": [
     "node_modules",
